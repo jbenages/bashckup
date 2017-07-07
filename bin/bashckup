@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Bashckup
+
+# crontab -u bashkup -e
+#00 2    * * *  bashckup -b server1 all
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+## System configuration ##
+###########################
+declare programsNeedBashckup=( "ssh" "rdiff-backup" "cpulimit" "mail" )
+
+# Charge system configuration
+source $DIR"/../conf/system.cfg"
+
+# Charge custom configuration
+source "$confDir""/bashckup.cfg"
+
+#[INFO] Install programs
+# apt-get install rdiff-backup cpulimit
+
+# Define SGDB to do backups, options: mysql mongo
+declare typesDatabases=( "mysql" "mongo" )                                                                                                                                                                                                   
+
+# Libraries
+. $DIR/../lib/system.sh
+. $DIR/../lib/array.sh
+. $DIR/../lib/time.sh
+. $DIR/../lib/mysql.sh
+. $DIR/../lib/db.sh
+
+# Functions
+. $DIR/../func/log.sh
+. $DIR/../func/install.sh
+. $DIR/../func/sendmail.sh
+. $DIR/../func/backup.sh
+. $DIR/../func/main.sh
+
+main "$@"
