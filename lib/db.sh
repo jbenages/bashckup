@@ -10,7 +10,7 @@ function dumpTable(){
         local sshRemote="ssh $5@$7"
     fi
     if [ "$1" == "mysql" ]; then
-        $sshRemote "cpulimit -l $8 -- mysqldump --lock-tables=false -u $5 -p$6 $2 $3  > $4$3.sql"
+        $sshRemote "cpulimit -l $8 -- mysqldump --lock-tables=false -u $5 -p'$6' $2 $3  > $4$3.sql"
     elif [ "$1" == "mongo" ]; then
         $sshRemote "cpulimit -l $8 -- mongodump -d $2 -c $3 -o $4/ > /dev/null"
     fi
@@ -37,7 +37,7 @@ function extractTables(){
 # params: $1 = server | $2 = user name | $3 = user password | $4 = SGDB type
 function extractDatabases(){
     if [ "$4" == "mysql" ]; then
-        databasesSystem=$(ssh $2@$1 "mysql -u $2 -p$3 -e \"show databases;\" | awk 'NR!=1{print \$1}'")
+        databasesSystem=$(ssh $2@$1 "mysql -u $2 -p'$3' -e \"show databases;\" | awk 'NR!=1{print \$1}'")
     elif  [ "$4" == "mongo" ]; then
         databasesSystem=$(ssh $2@$1 "echo 'show dbs' | mongo | awk 'NR>1{ print \$1}' | sed '1d; \$d'")
     fi
