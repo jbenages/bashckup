@@ -15,7 +15,7 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 ## System configuration ##
 ###########################
-declare programsNeedBashckup=( "ssh" "rdiff-backup" "cpulimit" "mail" )
+declare programsNeedBashckup=( "ssh" "duplicity" "cpulimit" "mail" )
 
 # Charge system configuration
 source $DIR"/../conf/system.cfg"

@@ -36,7 +36,8 @@ function install(){
         return 1
     fi
 
-    ssh root@${servers[$1]} "type -P rdiff-backup > /dev/null 2>&1"
+#    ssh root@${servers[$1]} "type -P rdiff-backup > /dev/null 2>&1"
+    ssh root@${servers[$1]} "type -P ls > /dev/null 2>&1" 
     if [ $? != 0 ];then
         ssh root@${servers[$1]} "apt-get update > /dev/null 2>&1 && apt-get -y install rdiff-backup cpulimit > /dev/null 2>&1"
         if [ $? != 0 ];then

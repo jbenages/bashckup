@@ -82,6 +82,10 @@ function backupSystem(){
         return 1
     fi
 
+    mkdir -p /tmp/remote >/dev/null 2>&1 
+    chmod 700 -R /tmp/remote
+    nohup sshfs -d -o allow_other -o reconnect -o ServerAliveInterval=15 "$username"@${servers[$1]}:"$2" /tmp/remote >/dev/null 2>&1 &
+
     local j
     for (( j=0; j<${#databasesToCopy[@]}; j++ ));do
 
@@ -106,9 +110,10 @@ function backupSystem(){
                 continue
             fi
 
-            cpulimit -l ${systemCpuLimit[$1]} rdiff-backup "$username"@${servers[$1]}::"$folderTableServer" "$homeDir/$1/$2/${databasesToCopy[$j]}/${tablesToCopy[$i]}" > /dev/null 2>&1
+            #cpulimit -l ${systemCpuLimit[$1]} rdiff-backup "$username"@${servers[$1]}::"$folderTableServer" "$homeDir/$1/$2/${databasesToCopy[$j]}/${tablesToCopy[$i]}" > /dev/null 2>&1
+	    PASSPHRASE="$gpgpassword" duplicity  /tmp/remote/"${databasesToCopy[$j]}/${tablesToCopy[$i]}/" file://"$homeDir/$1/$2/${databasesToCopy[$j]}/${tablesToCopy[$i]}" > /dev/null 2>&1
             if [ $? != 0 ];then
-                logOutput "alert" "$verbose" "$doLog" "$logDir" "$doLogMail" "$doAlertMail" "Fail rdiff-backup table: ${tablesToCopy[$i]} ,database: ${databasesToCopy[$j]} ,server: $1\n"
+                logOutput "alert" "$verbose" "$doLog" "$logDir" "$doLogMail" "$doAlertMail" "Fail duplicity table: ${tablesToCopy[$i]} ,database: ${databasesToCopy[$j]} ,server: $1\n"
                 continue
             fi
 
@@ -127,6 +132,9 @@ function backupSystem(){
 
         done
     done
+
+    fusermount -u /tmp/remote
+    rm -R /tmp/remote
 
     ssh "$username"@${servers[$1]} rm -rf "$homeDir"/$2/
     if [ $? != 0 ];then

@@ -6,15 +6,15 @@
 # print: String - Errors  
 function createUserMysql(){
 
-    ssh root@$1 "mysql -u root -p$5 -e \"exit\"" >> /dev/null
+    ssh root@$1 "mysql -u root -p'$5' -e \"exit\"" >> /dev/null
     if [ $? != 0 ];then
         return 1
     fi
-    ssh root@$1 "mysql -u root -p$5 -e \"SELECT * FROM mysql.user WHERE user = '$2';\" | grep -i '$2'" >> /dev/null
+    ssh root@$1 "mysql -u root -p'$5' -e \"SELECT * FROM mysql.user WHERE user = '$2';\" | grep -i '$2'" >> /dev/null
     if [ $? == 0 ];then
         return 2
     fi
-    ssh root@$1 "mysql -u root -p$5 -e \"GRANT $4 ON *.* TO '$2'@'localhost' IDENTIFIED BY '$3'; \" " >> /dev/null
+    ssh root@$1 "mysql -u root -p'$5' -e \"GRANT $4 ON *.* TO '$2'@'localhost' IDENTIFIED BY '$3'; \" " >> /dev/null
     if [ $? != 0 ];then
         return 3
     fi
