@@ -82,9 +82,22 @@ function backupSystem(){
         return 1
     fi
 
+    fusermount -u /tmp/remote >/dev/null 2>&1 
+    rm -R /tmp/remote > /dev/null 2>&1
     mkdir -p /tmp/remote >/dev/null 2>&1 
     chmod 700 -R /tmp/remote
-    nohup sshfs -d -o allow_other -o reconnect -o ServerAliveInterval=15 "$username"@${servers[$1]}:"$2" /tmp/remote >/dev/null 2>&1 &
+
+    createFolder "$homeDir/$2/" "$username" "${servers[$1]}"
+    if [ $? != 0 ];then
+       logOutput "alert" "$verbose" "$doLog" "$logDir" "$doLogMail" "$doAlertMail" "Fail create folder sgdb: $homeDir/$2/ ,database: ${databasesToCopy[$j]} ,server: $1\n"
+       continue
+    fi
+   
+    nohup timeout 15m sshfs -d -o allow_other -o reconnect -o ServerAliveInterval=15 "$username"@${servers[$1]}:"$2" /tmp/remote/ > /dev/null 2>&1 &
+    if [ $? != 0 ];then
+       logOutput "alert" "$verbose" "$doLog" "$logDir" "$doLogMail" "$doAlertMail" "Fail create sshfs connection on server: $1\n"
+       continue
+    fi
 
     local j
     for (( j=0; j<${#databasesToCopy[@]}; j++ ));do
@@ -97,6 +110,10 @@ function backupSystem(){
             
             local folderTableServer="$homeDir/$2/${databasesToCopy[$j]}/${tablesToCopy[$i]}/" 
             mkdir -p "$homeDir/$1/$2/${databasesToCopy[$j]}/${tablesToCopy[$i]}"
+
+	    if !( mountpoint -q /tmp/remote ); then
+                 nohup timeout 15m sshfs -d -o allow_other -o reconnect -o ServerAliveInterval=15 "$username"@${servers[$1]}:"$2" /tmp/remote/ > /dev/null 2>&1 &
+	    fi
             
             createFolder "$folderTableServer" "$username" "${servers[$1]}"
             if [ $? != 0 ];then
